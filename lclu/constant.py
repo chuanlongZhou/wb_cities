@@ -1,4 +1,5 @@
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from PIL import ImageColor
 
 lcz_color ={
     1:'#910613',
@@ -19,6 +20,10 @@ lcz_color ={
     16:'#FCF7B1',
     17:'#656BFA',
 }
+
+lcz_color_rgb = {}
+for k in lcz_color:
+    lcz_color_rgb[k] = ImageColor.getcolor(lcz_color[k], "RGB")
 
 lcz_cmp = []
 for i in lcz_color:

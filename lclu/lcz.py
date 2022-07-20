@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
 from rasterio.windows import Window
-from .constant import lcz_cmap, lcz_detail, lcz_color
+from .constant import lcz_cmap, lcz_detail, lcz_color, lcz_color_rgb
 
 class LCZ:
     def __init__(self, tiff_path, prob_tiff_path=None):
@@ -10,17 +10,10 @@ class LCZ:
         self.lcz_cmap = lcz_cmap
         self.lcz_detail = lcz_detail
         self.lcz_color = lcz_color
-        
-    def get_region(self, box, fig_size=(10,10), ax = None, hist=True, hist_ax=None):
-        # get a LCZ map and histogram from a box-bounded region
-        plt.rcParams["figure.figsize"] = fig_size
+        self.lcz_color_rgb = lcz_color_rgb
+    
+    def get_region(self, box):
         lcz_path = self.tiff_path
-        
-        if ax is None:
-            fig, ax = plt.subplots(figsize=fig_size)
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            ax.axis('off')
-        
         (lat_1, lon_1), (lat_2, lon_2) = box
         
         with rasterio.open(lcz_path) as src:
@@ -29,6 +22,20 @@ class LCZ:
             x_2, y_2 = ~transformer* (lon_2, lat_2)
             
             w = src.read(1, window=Window(x_1, y_1, x_2-x_1, y_2-y_1))
+            bounds = ( lon_1,lon_2, lat_2, lat_1)
+        
+        return w, bounds
+    
+    def plot_region(self, box, fig_size=(10,10), ax = None, hist=True, hist_ax=None):
+        # get a LCZ map and histogram from a box-bounded region
+        plt.rcParams["figure.figsize"] = fig_size
+        lcz_path = self.tiff_path
+        
+        if ax is None:
+            fig, ax = plt.subplots(figsize=fig_size)
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+            ax.axis('off')
+            w = self.get_region(box)
             content = ax.imshow(w, cmap=lcz_cmap)
             content.set_clim(1,17)
         
@@ -43,7 +50,7 @@ class LCZ:
         return (ax, hist_ax), content, w, hist
     
     def generate_global(self):
-        # not useful
+        # not useful only for test
         lcz_path = self.tiff_path
         
         dpi = 3000
