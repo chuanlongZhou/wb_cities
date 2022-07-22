@@ -6,8 +6,8 @@ import rasterio
 
 from utils import *
 from .admin_region import AdminRegion, Census
-from lclu import LCZ
-
+#from lclu import LCZ
+from tiff.tiff import TIFF, LCZ
 
 class Region:
     colormap = "OrRd"
@@ -23,6 +23,7 @@ class Region:
         self.inner_box = Census(df, level)
         self.outer_box = Census(df, level)
         self.house = None
+        self.box = None
         self.lcz = None
         if lcz_path is not None:
             self.lcz = LCZ(lcz_path)
@@ -51,6 +52,7 @@ class Region:
         ax = self.inner_box.region.plot(alpha=0.4, ax=ax, column=column, cmap=self.colormap,edgecolor=self.outer_box_edge_color, legend=legend, zorder=20)
         if self.lcz is not None:
             w, bounds = self.lcz.get_region(self.inner_box.box)
+            self.box = bounds
             rasterio.plot.show(w, extent=bounds, ax=ax, cmap=self.lcz.lcz_cmap, alpha=0.6, zorder=10)
             for im in ax.get_images():
                 im.set_clim(1, 17)
