@@ -1,5 +1,5 @@
 from .concept import Concept
-# from .v0 import V0
+from .v0 import V0
 # from .ts import TimeSeries
 # from .country import Country
 # from .net_work import NetWork
@@ -8,7 +8,7 @@ from .concept import Concept
 
 __all__ = [
     "Concept",
-    # "V0",
+    "V0",
     # "TimeSeries",
     # "Country",
     # "NetWork",

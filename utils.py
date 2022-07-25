@@ -3,19 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import concurrent.futures
 import multiprocessing as mp
-from tqdm import tqdm
 import geopandas as gpd
 from shapely.geometry import Polygon
 
+# def select_group_value(df, group, ):
+#     tk_cen.groupby(["region","city"], sort=False)['year'].max().reset_index().merge(tk_cen, on=["region","city","year"])
+    
 
 
-def plot_map_annote(c, col):
-    c['coords'] = c['geometry'].apply(lambda x: x.representative_point().coords[:])
-    c['coords'] = [coords[0] for coords in c['coords']]
-
-    c.plot()
-    for idx, row in c.iterrows():
-        plt.annotate(row[col], xy=row['coords'],
+def plot_map_annote(df, col):
+    df.plot(figsize=(20,18))
+    df["center"]= df.centroid
+    for idx, row in df.iterrows():
+        plt.annotate(row[col], xy=(row['center'].x, row['center'].y),
                     horizontalalignment='center')
         
 

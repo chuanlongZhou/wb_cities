@@ -2,6 +2,7 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from PIL import ImageColor
 
 lcz_color ={
+    0:"#cce0ff",
     1:'#910613',
     2:'#D9081C',
     3:'#FF0A22',

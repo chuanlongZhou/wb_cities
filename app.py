@@ -14,7 +14,11 @@ from setup import SETUP
 
 PAGES = [
     {"Concept": Concept, "button": False},
-    # {"V0: Census data": V0, "button": False},
+    {"V0 - Census data": V0, "button": False},
+    {"V1 - Builidng density": V0, "button": False},
+    {"V2 - LCZ/night light/satellite": V0, "button": False},
+    {"V3 - ML combined": V0, "button": False},
+    {"VF - 500×500m grid": V0, "button": False},
     # {"Countres": Country, "button": False},
     # {"Network": NetWork, "button": False},
     # {"divider": None, },
@@ -33,8 +37,8 @@ def init_state(state):
         state.setup = SETUP
         state.setup_dict = {}
 
-    if "Cairo" not in state:
-        state.Cairo = pickle.load(open(os.path.join("data","Cairo.pkl"),"rb"))
+    if "Adana" not in state:
+        state.Adana = pickle.load(open(os.path.join("data","Adana_v1.pkl"),"rb"))
 
     state.autoload = True
 
@@ -42,6 +46,7 @@ def init_state(state):
     for v in vars:
         if v not in state:
             setattr(state, v, None)
+    
     return state
 
 
@@ -73,7 +78,7 @@ def run():
 
     st.sidebar.markdown("""<hr style="margin:3px;" /> """,
                         unsafe_allow_html=True)
-
+    
     for p in state.pages:
         if "divider" in p:
             st.sidebar.markdown(
@@ -83,6 +88,7 @@ def run():
         else:
             p["button"] = st.sidebar.button(list(p.keys())[0])
 
+    
     for index, p in enumerate(state.pages):
         k = list(p.keys())[0]
         if not k in ["divider", "title"] and p["button"]:

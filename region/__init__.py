@@ -48,7 +48,7 @@ class Region:
             fig = plt.figure(figsize=(12,8), dpi=dpi)
             ax = plt.gca()
         ax = self.admin_region.region.plot(alpha=0.2, color=self.bg_color, edgecolor=self.bg_edge_color, ax=ax)
-        ax = self.outer_box.region.plot(alpha=0.4, color=self.outer_box_color, edgecolor=self.outer_box_edge_color,ax=ax)
+        # ax = self.outer_box.region.plot(alpha=0.4, color=self.outer_box_color, edgecolor=self.outer_box_edge_color,ax=ax)
         ax = self.inner_box.region.plot(alpha=0.4, ax=ax, column=column, cmap=self.colormap,edgecolor=self.outer_box_edge_color, legend=legend, zorder=20)
         if self.lcz is not None:
             w, bounds = self.lcz.get_region(self.inner_box.box)
@@ -61,14 +61,24 @@ class Region:
         
         return ax
     
-    def create_map_interactive(self, column):
-        m = self.admin_region.region.explore(
-            name="country region",
-            tooltip=self.admin_region.level,
-            popup=False,
-            # opacity=0.3,
-            style_kwds=dict(color=self.bg_color, edgecolor=self.bg_edge_color)
-            )
+    def create_map_interactive(self, column, m=None):
+        if m is None:
+            m = self.admin_region.region.explore(
+                name="country region",
+                tooltip=self.admin_region.level,
+                popup=False,
+                # opacity=0.3,
+                style_kwds=dict(color=self.bg_color, edgecolor=self.bg_edge_color)
+                )
+        else:
+            self.admin_region.region.explore(
+                m=m,
+                name="country region",
+                tooltip=self.admin_region.level,
+                popup=False,
+                # opacity=0.3,
+                style_kwds=dict(color=self.bg_color, edgecolor=self.bg_edge_color)
+                )
         
         self.outer_box.region.explore(
             m=m,
@@ -99,7 +109,7 @@ class Region:
                 colormap=lambda x: self.lcz.lcz_color_rgb[x],
                 interactive=True,
                 cross_origin=False,
-                zindex=999,
+                zindex=40,
             )
             img.add_to(m)
 

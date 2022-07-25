@@ -11,20 +11,24 @@ class LCZ:
         self.lcz_detail = lcz_detail
         self.lcz_color = lcz_color
         self.lcz_color_rgb = lcz_color_rgb
+        
+        self.w = None
+        self.bound = None
     
-    def get_region(self, box):
-        lcz_path = self.tiff_path
-        (lat_1, lon_1), (lat_2, lon_2) = box
-        
-        with rasterio.open(lcz_path) as src:
-            transformer = src.transform
-            x_1, y_1 = ~transformer* (lon_1, lat_1)
-            x_2, y_2 = ~transformer* (lon_2, lat_2)
+    def get_region(self, box, update=False):
+        if update or self.w is None:
+            lcz_path = self.tiff_path
+            (lat_1, lon_1), (lat_2, lon_2) = box
             
-            w = src.read(1, window=Window(x_1, y_1, x_2-x_1, y_2-y_1))
-            bounds = ( lon_1,lon_2, lat_2, lat_1)
+            with rasterio.open(lcz_path) as src:
+                transformer = src.transform
+                x_1, y_1 = ~transformer* (lon_1, lat_1)
+                x_2, y_2 = ~transformer* (lon_2, lat_2)
+                
+                self.w = src.read(1, window=Window(x_1, y_1, x_2-x_1, y_2-y_1))
+                self.bounds = ( lon_1,lon_2, lat_2, lat_1)
         
-        return w, bounds
+        return self.w, self.bounds
     
     def plot_region(self, box, fig_size=(10,10), ax = None, hist=True, hist_ax=None):
         # get a LCZ map and histogram from a box-bounded region
