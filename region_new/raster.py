@@ -37,7 +37,7 @@ class Raster:
         else:
             res = self.tiff[var].interp_like(like_grid, method=method)
         return res
-        
+                
     
     @staticmethod
     def box_clip(tiff_path, box):

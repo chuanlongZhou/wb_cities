@@ -1,6 +1,6 @@
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from PIL import ImageColor
-
+import numpy as np
 
 lcz_hight = {
     0: 0,
