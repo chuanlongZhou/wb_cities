@@ -21,6 +21,7 @@ lcz_hight = {
     15: 0.1,
     16: 0,
     17: 0,
+    np.nan:0,
 }
 
 lcz_color = {
