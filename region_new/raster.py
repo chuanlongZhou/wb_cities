@@ -37,7 +37,11 @@ class Raster:
         else:
             res = self.tiff[var].interp_like(like_grid, method=method)
         return res
-                
+    
+    @staticmethod
+    def export_var(ds, var, file_path="test.tif"):
+        ds = ds.transpose('band', 'y', 'x')
+        ds[var].rio.to_raster(file_path)
     
     @staticmethod
     def box_clip(tiff_path, box):
