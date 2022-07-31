@@ -1,10 +1,8 @@
 import numpy
 import requests
 import io
-import urllib.request 
 import os
 import ee
-import zipfile
 
 
 def getMonthlyData(year, month):
@@ -18,14 +16,26 @@ def getMonthlyData(year, month):
     max_date = year+'-'+month+'-28'
     collection = 'MODIS/061/MOD11A1'
 
-    data = ee.ImageCollection(collection).filterDate(min_date, max_date)
-    data = data.first()
+    data = ee.ImageCollection(collection).filterDate(min_date, max_date).mean()
                      
     return data
+        
+        
+def getYearlyData(year):
+    '''Returns a list of monthly cropped images
+
+    Args:
+        year (string): use 4 digits typo ex : '2021'
+    '''
+    months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    
+    data_list = []
+    for m in months:
+        data_list.append( getMonthlyData(year, m) )
+    return data_list
 
 
-
-def downloadAsLink(city, year, data_list):
+def downloadAsLink( data_list, city, year):
     '''Provide links to download all image elements in a list
 
     Args:
@@ -43,35 +53,18 @@ def downloadAsLink(city, year, data_list):
 
     box = bounding_box[city]
     [(ymax, xmin), (ymin, xmax)] = box['box']
-    
-    region = ee.Geometry.BBox(xmin, ymin, xmax, ymax)
+    margin = 0.001
+    region = ee.Geometry.BBox(xmin-margin, ymin+margin, xmax+margin, ymax+margin)
     for i in range(12):
-        name = str(city)+"_"+str(year)+"_"+str(i+1)
+        name = str(city)+"_"+str(year)+"_"+str(i+1)+'.tif'
         url=data_list[i].getDownloadUrl({
             'name': name,
-            'bands': ['LST_Day_1km'],
+            'bands': ['LST_Day_1km', 'LST_Night_1km'],
             'region':region,
-            'scale':30
+            'format':'GEO_TIFF',
+            'scale':1000
         })
-        path = os.path.join("..", "data", "lst")
-        filehandle, _ = urllib.request.urlretrieve(url)
-        with zipfile.ZipFile(filehandle, 'r') as zipObj:
-            names = zipObj.namelist()
-            for fileName in names:
-                zipObj.extract(fileName, path)
-        
-        
-def getYearlyData(year):
-    '''Returns a list of monthly cropped images
-
-    Args:
-        year (string): use 4 digits typo ex : '2021'
-    '''
-    months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-    
-    data_list = []
-    for m in months:
-        data_list.append( getMonthlyData(year, m) )
-    return data_list
-
-
+        path = os.path.join("..", "data", "lst", "")
+        with open(path+name, 'wb') as out_file:
+            content = requests.get(url, stream=True).content
+            out_file.write(content)

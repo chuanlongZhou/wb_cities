@@ -49,3 +49,4 @@ class Raster:
         with rioxarray.open_rasterio(tiff_path) as src:
             grid = src.rio.clip_box(minx=min_lon, miny=min_lat, maxx=max_lon, maxy=max_lat)
         return grid
+    
