@@ -19,6 +19,7 @@ class Raster:
             self.tiff = tiff
             
     def reproject(self, crs):
+        print(self.tiff)
         self.tiff = self.tiff.rio.reproject(crs)
         
     def interp(self, like_grid, var="all", method="linear"):
@@ -49,3 +50,4 @@ class Raster:
         with rioxarray.open_rasterio(tiff_path) as src:
             grid = src.rio.clip_box(minx=min_lon, miny=min_lat, maxx=max_lon, maxy=max_lat)
         return grid
+    

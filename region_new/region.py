@@ -33,6 +33,7 @@ class Region:
 
         # the merged xarray, used as final output
         self.output = None
+        self.output_normed = None
 
     def add_layer(self, layer_name,  geo_data, layer_type="vector", **args):
         if layer_type in ["vector", "v"]:
@@ -97,3 +98,17 @@ class Region:
         )
         
         return out_grid
+    
+    
+    def normalize_output(self):
+        def normalize(da):
+            max_val = da.max()
+            min_val = da.min()
+            normalized = (da - min_val) / (max_val - min_val)
+            return normalized
+        self.output_normed = self.output.map(normalize)
+        
+    
+    def difference_map(self, var1, var2):        
+        diff = self.output_normed[var1] - self.output_normed[var2]
+        return diff.plot(cmap='PiYG')
