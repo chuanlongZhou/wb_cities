@@ -3,6 +3,7 @@ import requests
 import io
 import os
 import ee
+import json
 
 
 def getMonthlyData(year, month):
@@ -42,15 +43,7 @@ def downloadAsLink( data_list, city, year):
         data_list (_list_): _list of ee-queried images
         year (str): use '01' typo for January, and so on
     '''
-    bounding_box = dict(
-    Cairo=dict(box=[(30.4, 30.8),  (29.7, 31.8)]),
-    Johannesburg=dict(box=[(-25.7, 27.7),  (-26.6, 28.5)]),
-    Adana=dict(box=[(37.07143800485324, 35.17329182281017),  (36.91227725278698, 35.51638118905048)]),
-    Ordu=dict(box=[(41.02005066750512, 37.859763930345395),  (40.922495635935796, 38.03387755848272)]),
-    Trabzon=dict(box=[(41.021005197945385, 39.65238569404653),  (40.95879910380294, 39.80587291303715)]),
-    Manisa=dict(box=[(38.69341901846549, 27.27799521554712),  (38.5893040428113, 27.491450649299416)]),
-    )
-
+    bounding_box = json.load(open('../bounding_box.json'))
     box = bounding_box[city]
     [(ymax, xmin), (ymin, xmax)] = box['box']
     margin = 0.001
