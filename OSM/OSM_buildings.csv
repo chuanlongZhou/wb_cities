@@ -1,0 +1,85 @@
+﻿tag,category,description
+apartments,Accommodation,"A building arranged into individual dwellings, often on separate floors. May also have retail outlets on the ground floor."
+barracks,Accommodation,Buildings built to house military personnel or laborers.
+bungalow,Accommodation,"A single-storey detached small house, Dacha."
+cabin,Accommodation,"A cabin is a small, roughly built house usually with a wood exterior and typically found in rural areas."
+detached,Accommodation,"A detached house, a free-standing residential building usually housing a single family."
+dormitory,Accommodation,"A shared building intended for college/university students (not a share room for multiple occupants as implied by the term in British English). Alternatively, use building=residential plus residential=university and loose the information that it is for students."
+farm,Accommodation,"A residential building on a farm (farmhouse). For other buildings see below building=farm_auxiliary, building=barn, … If in your country farmhouse looks same as general residential house then you can tag as building=house as well. See also landuse=farmyard for the surrounding area"
+ger,Accommodation,A permanent or seasonal round yurt or ger.
+hotel,Accommodation,A building designed with separate rooms available for overnight accommodation. Normally used in conjunction with tourism=hotel for the hotel grounds including recreation areas and parking.
+house,Accommodation,"A dwelling unit inhabited by a single household (a family or small group sharing facilities such as a kitchen). Houses forming half of a semi-detached pair, or one of a row of terraced houses, should share at least two nodes with joined neighbours, thereby defining the party wall between the properties."
+houseboat,Accommodation,A boat used primarily as a home
+residential,Accommodation,"A general tag for a building used primarily for residential purposes. Where additional detail is available consider using 'apartments', 'terrace', 'house', 'detached' or 'semidetached_house'."
+semidetached_house,Accommodation,"A residential house that shares a common wall with another on one side. Typically called a ""duplex"" in American English."
+static_caravan,Accommodation,A mobile home (semi)permanently left on a single site
+terrace,Accommodation,"A single way used to define the outline of a linear row of residential dwellings, each of which normally has its own entrance, which form a terrace (""row-house"" or ""townhouse"" in North American English). Consider defining each dwelling separately using 'house'."
+commercial,Commercial,"A building for non-specific commercial activities, not necessarily an office building. Consider tagging the surrounding area using landuse=commercial if there is such use. Use 'retail' if the building consists primarily of shops."
+industrial,Commercial,A building for industrial purposes. Use warehouse if the purpose is known to be primarily for storage/distribution. Consider using landuse=industrial for the surrounding area and appropriate tags like man_made=works to describe the industrial activity.
+kiosk,Commercial,A small one-room retail building.
+office,Commercial,An office building. Use office=* where applicable for the business(es) that use the building. Consider tagging the surrounding area using landuse=commercial if it applies. Prefer 'retail' if the building consists primarily of shops.
+retail,Commercial,"A building primarily used for selling goods that are sold to the public; use shop=* to identify the sort of goods sold or an appropriate amenity=* (pub, cafe, restaurant, etc.). Consider use landuse=retail for the surrounding area."
+supermarket,Commercial,A building constructed to house a self-service large-area store.
+warehouse,Commercial,A building primarily intended for the storage or goods or as part of a distribution system.
+cathedral,Religious,"A building that was built as a cathedral. Used in conjunction with amenity=place_of_worship, religion=*, denomination=* and landuse=religious for the cathedral grounds where it is in current use."
+chapel,Religious,"A building that was built as a chapel. Used in conjunction with amenity=place_of_worship, religion=*, denomination=* and landuse=religious for the chapel grounds where it is in current use."
+church,Religious,"A building that was built as a church. Used in conjunction with amenity=place_of_worship, religion=* , denomination=* and landuse=religious for the church grounds where it is in current use."
+kingdom_hall ,Religious,"A building that was built as a  Kingdom Hall. Often used in conjunction with amenity=place_of_worship, religion=christian, denomination=jehovahs_witness and landuse=religious for the grounds where it is in current use."
+monastery,Religious,"A building constructed as  monastery. Often, monasteries consist of several distinct buildings with specific functions. For active monasteries (communities), use amenity=monastery, for the grounds of a former monastery, have a look at historic=monastery"
+mosque,Religious,"A building errected as mosque. Used in conjunction with amenity=place_of_worship, religion=*, denomination=* and landuse=religious for the grounds where it is in current use."
+presbytery,Religious,A building where priests live and work.
+religious,Religious,Unspecific building related to religion. Prefer more specific values if possible.
+shrine,Religious,"A building that was built as a shrine. Used in conjunction with amenity=place_of_worship, religion=*, denomination=* and landuse=religious for the grounds where it is in current use. Small structures should consider historic=wayside_shrine."
+synagogue,Religious,"A building that was built as a synagogue. Used in conjunction with amenity=place_of_worship, religion=*, denomination=* and landuse=religious for the grounds where it is in current use."
+temple,Religious,"A building that was built as a temple. Used in conjunction with amenity=place_of_worship, religion=*, denomination=* and landuse=religious for the grounds where it is in current use."
+bakehouse,Civic/amenity,A building that was built as a bakehouse (i.e. for baking bread). Often used in conjunction with another node amenity=baking_oven and oven=wood_fired.
+civic,Civic/amenity,"A generic tag for a building created to house some civic amenity, for example amenity=community_centre, amenity=library, amenity=toilets, leisure=sports_centre, leisure=swimming_pool, amenity=townhall etc. Use amenity=* or leisure=* etc. to provide further details. See building=public and more specific tags like building=library as well."
+college,Civic/amenity,A college building. Use amenity=college on the whole college area to represent the college as an institution.
+fire_station,Civic/amenity,"A building constructed as fire station, i.e. to house fire fighting equipment and officers, regardless of current use. Add amenity=fire_station on the grounds for an active fire station."
+government,Civic/amenity,"For government buildings in general, including municipal, provincial and divisional secretaries, government agencies and departments, town halls, (regional) parliaments and court houses."
+hospital,Civic/amenity,A building errected for a hospital. Use amenity=hospital for the hospital grounds.
+kindergarten,Civic/amenity,"For any generic kindergarten buildings. Buildings for specific uses (sports halls etc.) should be tagged for their purpose. If there is currently a kindergarten in the building, use amenity=kindergarten on the perimeter of the kindergarten grounds."
+public,Civic/amenity,"A building constructed as accessible to the general public (a town hall, police station, court house, etc.)."
+school,Civic/amenity,"A building errected as school. Buildings for specific uses (sports halls etc.) should be tagged for their purpose. If there is currently a school, use amenity=school on the perimeter of the school grounds."
+toilets,Civic/amenity,A toilet block.
+train_station,Civic/amenity,"A building constructed to be a train station building, including buildings that are abandoned and used nowadays for a different purpose."
+transportation,Civic/amenity,"A building related to public transport. You will probably want to tag it with proper transport related tag as well, such as public_transport=station. Note that there is a special tag for train station buildings - building=train_station."
+university,Civic/amenity,A university building. Use amenity=university for the university as an institution.
+barn,Agricultural/plant production,An agricultural building used for storage and as a covered workplace.
+conservatory,Agricultural/plant production,A building or room having glass or tarpaulin roofing and walls used as an indoor garden or a sunroom (winter garden).
+cowshed,Agricultural/plant production,"A cowshed (cow barn, cow house) is a building for housing cows, usually found on farms."
+farm_auxiliary,Agricultural/plant production,A building on a farm that is not a dwelling (use 'farm' or 'house' for the farm house).
+greenhouse,Agricultural/plant production,A greenhouse is a glass or plastic covered building used to grow plants. Use landuse=greenhouse_horticulture for an area containing multiple greenhouses
+slurry_tank,Agricultural/plant production,A circular building built to hold a liquid mix of primarily animal excreta (also known as slurry).
+stable,Agricultural/plant production,A stable is a building where horses are kept.
+sty,Agricultural/plant production,"A sty (pigsty, pig ark, pig-shed) is a building for raising domestic pigs, usually found on farms."
+grandstand,Sports,"The main stand, usually roofed, commanding the best view for spectators at racecourses or sports grounds."
+pavilion,Sports,"A sports pavilion usually with changing rooms, storage areas and possibly an space for functions & events. Avoid using this term for other structures called pavilions by architects (see  Pavilion)"
+riding_hall,Sports,A building that was built as a riding hall.
+sports_hall,Sports,A building that was built as a sports hall.
+stadium,Sports,"A building constructed to be a stadium building, including buildings that are abandoned and used nowadays for a different purpose."
+hangar,Storage,"A hangar is a building used for the storage of airplanes, helicopters or space-craft. Consider adding aeroway=hangar, when appropriate."
+hut,Storage,"A hut is a small and crude shelter. Note that this word has two meanings - it may be synonym of building=shed, it may be a residential building of low quality."
+shed,Storage,"A shed is a simple, single-storey structure in a back garden or on an allotment that is used for storage, hobbies, or as a workshop."
+carport,Cars,"A carport is a covered structure used to offer limited protection to vehicles, primarily cars, from the elements. Unlike most structures a carport does not have four walls, and usually has one or two."
+garage,Cars,"A garage is a building suitable for the storage of one or possibly more motor vehicle or similar. See building=garages for larger shared buildings. For an aircraft garage, see building=hangar."
+garages,Cars,A building that consists of a number of discrete storage spaces for different owners/tenants. See also building=garage.
+parking,Cars,Structure purpose-built for parking cars.
+digester,Power/technical buildings,A digester is a bioreactor for the production of biogas from biomass.
+service,Power/technical buildings,Service building usually is a small unmanned building with certain machinery (like pumps or transformers).
+transformer_tower,Power/technical buildings,A transformer tower is a characteristic tall building comprising a distribution transformer and constructed to connect directly to a medium voltage overhead power line. Quite often the power line has since been undergrounded but the building may still serve as a substation. If the building is still in use as a substation it should additionally be tagged as power=substation + substation=minor_distribution.
+water_tower,Power/technical buildings,A water tower
+beach_hut,Other buildings,"A small, usually wooden, and often brightly coloured cabin or shelter above the high tide mark on popular bathing beaches."
+bunker,Other buildings,A hardened military building. Also use military=bunker.
+bridge,Other buildings,A building used as a bridge (skyway). To map a gatehouse use building=gatehouse. See also bridge=yes for highway=*. Don't use this tag just for marking bridges (their outlines). For such purposes use man_made=bridge.
+castle,Other buildings,A building constructed as a castle. Can be further specified with historic=castle + castle_type=*.
+construction,Other buildings,Used for buildings under construction. Use construction=* to hold the value for the completed building.
+container,Other buildings,"For a container used as a permanent building. Do not map containers placed temporarily, for example used in shipping or construction."
+gatehouse,Other buildings,"An entry control point building, spanning over a highway that enters a city or compound."
+military,Other buildings,A military building. Also use military=*.
+roof,Other buildings,"A structure that consists of a roof with open sides, such as a rain shelter, and also gas stations"
+ruins,Other buildings,"Frequently used for a house or other building that is abandoned and in poor repair. However, some believe this usage is incorrect, and the tag should only be used for buildings constructed as fake ruins (for example sham ruins in an English landscape garden). See also lifecycle tagging."
+tent,Other buildings,For a permanently placed tent. Do not map tents placed temporarily.
+tree_house,Other buildings,"An accommodation, often designed as a small hut, sometimes also as a room or small apartment. Built on tree posts or on a natural tree. A tree house has no contact with the ground. Access via ladders, stairs or bridgeways."
+yes,Untagged,Use this value where it is not possible to determine a more specific value.
+user defined,Untagged,"All commonly used values according to Taginfo, generally building types"
