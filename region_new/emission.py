@@ -7,3 +7,6 @@ def emission_simple(ds):
     e = (ds.density + ds.area*ds.lcz_height)* ds.population
     return e 
 
+def emission_nlse(ds):
+    e = (ds.density + ds.area * ds.height) * ds.ntl * ds.pop 
+    return e

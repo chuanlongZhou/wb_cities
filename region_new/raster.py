@@ -19,7 +19,6 @@ class Raster:
             self.tiff = tiff
             
     def reproject(self, crs):
-        print(self.tiff)
         self.tiff = self.tiff.rio.reproject(crs)
         
     def interp(self, like_grid, var="all", method="linear"):

@@ -101,12 +101,12 @@ class Region:
     
     
     def normalize_output(self):
-        def normalize(da):
-            max_val = da.max()
-            min_val = da.min()
-            normalized = (da - min_val) / (max_val - min_val)
-            return normalized
-        self.output_normed = self.output.map(normalize)
+        for var in self.output:
+            if var == 'emission':
+                continue
+            maxd = self.output.max()
+            mind = self.output.min()
+            self.output[var] = (self.output[var] - mind[var]) / (maxd[var] - mind[var])
         
     
     def difference_map(self, var1, var2):        
