@@ -110,5 +110,5 @@ class Region:
         
     
     def difference_map(self, var1, var2):        
-        diff = self.output_normed[var1] - self.output_normed[var2]
-        return diff.plot(cmap='PiYG')
+        diff = self.output[var1] - self.output[var2]
+        return diff.plot(cmap='PiYG', figsize=(15,10))
