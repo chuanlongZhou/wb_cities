@@ -6,7 +6,7 @@ import ee
 import json
 
 
-def getMonthlyData(year, month):
+def getMonthlyData(collection, year, month):
     '''Query LST monthly average image
     Args:
         year (_string_): use '01' typo for January, and so on
@@ -15,14 +15,14 @@ def getMonthlyData(year, month):
  
     min_date = year+'-'+month+'-01'
     max_date = year+'-'+month+'-28'
-    collection = 'MODIS/061/MOD11A1'
+    collection = collection
 
     data = ee.ImageCollection(collection).filterDate(min_date, max_date).mean()
                      
     return data
         
         
-def getYearlyData(year):
+def getYearlyData(collection, year):
     '''Returns a list of monthly cropped images
 
     Args:
@@ -32,32 +32,35 @@ def getYearlyData(year):
     
     data_list = []
     for m in months:
-        data_list.append( getMonthlyData(year, m) )
+        data_list.append( getMonthlyData(collection, year, m) )
     return data_list
 
 
-def downloadAsLink( data_list, city, year):
-    '''Provide links to download all image elements in a list
-
-    Args:
-        data_list (_list_): _list of ee-queried images
-        year (str): use '01' typo for January, and so on
-    '''
+def download(city, variable, year):
     bounding_box = json.load(open('../bounding_box.json'))
     box = bounding_box[city]
     [(ymax, xmin), (ymin, xmax)] = box['box']
     margin = 0.001
     region = ee.Geometry.BBox(xmin-margin, ymin+margin, xmax+margin, ymax+margin)
+    variables = json.load(open('config.json'))
+    collection = variables['datasets'][variable]['name']
+    data_list = getYearlyData(collection, year)
+    bands = variables['datasets'][variable]['bands']
+    downloadAsLink(data_list, city, region, year, bands, variable)
+    
+    
+
+def downloadAsLink( data_list, city, region, year, bands, variable):
     for i in range(12):
         name = str(city)+"_"+str(year)+"_"+str(i+1)+'.tif'
         url=data_list[i].getDownloadUrl({
             'name': name,
-            'bands': ['LST_Day_1km', 'LST_Night_1km'],
+            'bands': bands,
             'region':region,
             'format':'GEO_TIFF',
             'scale':1000
         })
-        path = os.path.join("..", "data", "lst", "")
+        path = os.path.join("..", "data", variable, "")
         with open(path+name, 'wb') as out_file:
             content = requests.get(url, stream=True).content
             out_file.write(content)
