@@ -8,5 +8,5 @@ def emission_simple(ds):
     return e 
 
 def emission_nlse(ds):
-    e = (ds.density + ds.area * ds.height) * ds.ntl * ds.pop 
+    e = ds.volume * ds.pop 
     return e
