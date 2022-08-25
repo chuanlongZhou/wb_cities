@@ -3,7 +3,6 @@ import pandas as pd
 import geopandas
 from tqdm import tqdm
 
-
 from functools import wraps
 import time
 
@@ -158,6 +157,45 @@ def searh_rows2(df1, df2, added, crs='EPSG:4326', overlap_threshold = 0.3, df=No
             # if index>200:
             #     break   
             # break   
+            
+    df = geopandas.GeoDataFrame(df)
+    if len(df)>0:
+        df = df.set_crs(crs, allow_override=True)
+    
+    return df, added
+
+
+
+def searh_rows3(df1, df2, added, crs='EPSG:4326', overlap_threshold = 0.3, df=None):
+    df2_buffer = df2.buffer(0)
+    
+    if df is None:
+        df = geopandas.GeoDataFrame()
+    
+        
+    for index, row in tqdm(df1.iterrows()):
+        if index not in added:
+            over_row_rough = geopandas.clip(df2_buffer, row["geometry"].buffer(0))
+            
+            if len(over_row_rough)==0:
+                df = df.append(row)
+            else:
+                over_row = []
+                over_index = []
+                for jindex, jrow in df2.loc[over_row_rough.index].iterrows():
+                    overlapped_area = cal_overlap(row["geometry"], jrow["geometry"])
+                    if jrow["geometry"].area>0:
+                        if overlapped_area/jrow["geometry"].area > overlap_threshold:
+                            over_row.append(jrow)
+                            over_index.append(jindex)
+                        
+                temp = union_rows(row, over_row)
+                df = df.append(temp)
+                added.extend(over_index)
+                
+            added.append(index)
+                
+
             
     df = geopandas.GeoDataFrame(df)
     df = df.set_crs(crs, allow_override=True)

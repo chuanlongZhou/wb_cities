@@ -5,6 +5,8 @@ import concurrent.futures
 import multiprocessing as mp
 import geopandas as gpd
 from shapely.geometry import Polygon
+from tqdm import tqdm
+
 
 # def select_group_value(df, group, ):
 #     tk_cen.groupby(["region","city"], sort=False)['year'].max().reset_index().merge(tk_cen, on=["region","city","year"])
@@ -19,17 +21,27 @@ def plot_map_annote(df, col):
                     horizontalalignment='center')
         
 
-def run_mp(map_func, arg_list, combine_func=None, num_cores=None):
-    if num_cores is None:
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+        
+
+def run_mp(map_func, arg_list, combine_func=None, num_cores=-1, split_arg=-1, **kwargs):
+    if num_cores==-1:
         num_cores = mp.cpu_count()
         num_cores = len(arg_list) if len(arg_list)<num_cores else num_cores
-    print(f"Using {num_cores} threads...")
-    
+   
+    if split_arg!=-1:
+       arg_list = list(chunks(arg_list, split_arg))
+   
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as pool:
         with tqdm(total=len(arg_list)) as progress:
             futures = []
+            
             for args in arg_list:
-                future = pool.submit(map_func, args)
+                # the arg list need to be created if there are more than one arguments
+                future = pool.submit(map_func, args, **kwargs)
                 future.add_done_callback(lambda p: progress.update())
                 futures.append(future)
 
@@ -42,7 +54,7 @@ def run_mp(map_func, arg_list, combine_func=None, num_cores=None):
     if combine_func is not None:
         return combine_func(results)
     else:
-        return results   
+        return results  
     
 
 def create_polygon(top, bottom):
