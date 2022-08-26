@@ -126,33 +126,33 @@ def searh_rows2(df1, df2, added, crs='EPSG:4326', overlap_threshold = 0.3, df=No
     if df is None:
         df = geopandas.GeoDataFrame()
     
-    with tqdm(total=len(df1)) as pbar:
+    # with tqdm(total=len(df1)) as pbar:
         
-        for index, row in tqdm(df1.iterrows()):
-            if index not in added:
-                over_row_rough = geopandas.clip(df2_buffer, row["geometry"].buffer(0))
+    for index, row in tqdm(df1.iterrows()):
+        if index not in added and row["geometry"] is not None:
+            over_row_rough = geopandas.clip(df2_buffer, row["geometry"].buffer(0))
+            
+            if len(over_row_rough)==0:
+                df = df.append(row)
+            else:
+                over_row = []
+                over_index = []
+                for jindex, jrow in df2.loc[over_row_rough.index].iterrows():
+                    overlapped_area = cal_overlap(row["geometry"], jrow["geometry"])
+                    if jrow["geometry"].area>0:
+                        if overlapped_area/jrow["geometry"].area > overlap_threshold:
+                            over_row.append(jrow)
+                            over_index.append(jindex)
+                        
+                temp = union_rows(row, over_row)
+                df = df.append(temp)
+                # if len(over_index)>1:
+                #     print(over_index)
+                added.extend(over_index)
                 
-                if len(over_row_rough)==0:
-                    df = df.append(row)
-                else:
-                    over_row = []
-                    over_index = []
-                    for jindex, jrow in df2.loc[over_row_rough.index].iterrows():
-                        overlapped_area = cal_overlap(row["geometry"], jrow["geometry"])
-                        if jrow["geometry"].area>0:
-                            if overlapped_area/jrow["geometry"].area > overlap_threshold:
-                                over_row.append(jrow)
-                                over_index.append(jindex)
-                            
-                    temp = union_rows(row, over_row)
-                    df = df.append(temp)
-                    # if len(over_index)>1:
-                    #     print(over_index)
-                    added.extend(over_index)
-                    
-                added.append(index)
+            added.append(index)
                 
-            pbar.update(1)
+            # pbar.update(1)
             
             # if index>200:
             #     break   
