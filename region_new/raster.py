@@ -35,7 +35,6 @@ class Raster:
         if var=="all":
             res = self.tiff.interp_like(like_grid, method=method)
         else:
-            print("issou")
             res = self.tiff[var].interp_like(like_grid, method=method)
         return res
     
