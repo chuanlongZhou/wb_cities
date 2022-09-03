@@ -2,6 +2,7 @@ import pickle
 import pandas as pd
 import geopandas
 from tqdm import tqdm
+import os
 
 from functools import wraps
 import time
@@ -23,13 +24,31 @@ def union_rows(row, jrows):
         
     df = pd.DataFrame()
     polgyon = None
+    if row["geometry"] is not None:
+        polgyon = row["geometry"]
+        
+    if "polygon_type" in row:
+        polygon_type = row["polygon_type"]
+        if  pd.isna(polygon_type):
+            polygon_type = ""
+    else:
+        polygon_type=""
+        
     for r in jrows:
-        if polgyon is None:
-            polgyon = row["geometry"].buffer(0).union(r["geometry"].buffer(0))
-        else:
-            polgyon = polgyon.buffer(0).union(r["geometry"].buffer(0))
+        if r["geometry"] is not None:
+            if polgyon is None:
+                polgyon = row["geometry"].buffer(0).union(r["geometry"].buffer(0))
+            else:
+                polgyon = polgyon.buffer(0).union(r["geometry"].buffer(0))
+            
+        if "polygon_type" in r:
+            if not pd.isna(r["polygon_type"]):
+                polygon_type = polygon_type+","+r["polygon_type"]
+        
         df = df.append(r)
+        
     row["geometry"] = polgyon
+    row["polygon_type"] = polygon_type
     df = df.append(row)
     df = df.fillna(method='ffill')
     df = df.iloc[-1:]
@@ -123,36 +142,43 @@ def searh_rows(df1, df2, added, crs='EPSG:4326', overlap_threshold = 0.3, df=Non
 def searh_rows2(df1, df2, added, crs='EPSG:4326', overlap_threshold = 0.3, df=None, match_one=True):
     df2_buffer = df2.buffer(0)
     
+    path = os.path.join("data", "temp", f"{df1.index[0]}_{df1.index[-1]}.pkl")
+    if os.path.exists(path):
+        data = pickle.load(open(path,"rb"))
+        df, added = data
+        return df, added
+    
     if df is None:
         df = geopandas.GeoDataFrame()
     
-    # with tqdm(total=len(df1)) as pbar:
+    with tqdm(total=len(df1)) as pbar:
         
-    for index, row in tqdm(df1.iterrows()):
-        if index not in added and row["geometry"] is not None:
-            over_row_rough = geopandas.clip(df2_buffer, row["geometry"].buffer(0))
-            
-            if len(over_row_rough)==0:
-                df = df.append(row)
-            else:
-                over_row = []
-                over_index = []
-                for jindex, jrow in df2.loc[over_row_rough.index].iterrows():
-                    overlapped_area = cal_overlap(row["geometry"], jrow["geometry"])
-                    if jrow["geometry"].area>0:
-                        if overlapped_area/jrow["geometry"].area > overlap_threshold:
-                            over_row.append(jrow)
-                            over_index.append(jindex)
-                        
-                temp = union_rows(row, over_row)
-                df = df.append(temp)
-                # if len(over_index)>1:
-                #     print(over_index)
-                added.extend(over_index)
+        for index, row in tqdm(df1.iterrows()):
+            if index not in added and row["geometry"] is not None:
+                lable_df = df2_buffer.loc[df2["box_index"]==row["box_index"]]
+                over_row_rough = geopandas.clip(lable_df, row["geometry"].buffer(0))
                 
-            added.append(index)
-                
-            # pbar.update(1)
+                if len(over_row_rough)==0:
+                    df = df.append(row)
+                else:
+                    over_row = []
+                    over_index = []
+                    for jindex, jrow in df2.loc[over_row_rough.index].iterrows():
+                        overlapped_area = cal_overlap(row["geometry"], jrow["geometry"])
+                        if jrow["geometry"].area>0:
+                            if overlapped_area/jrow["geometry"].area > overlap_threshold:
+                                over_row.append(jrow)
+                                over_index.append(jindex)
+                            
+                    temp = union_rows(row, over_row)
+                    df = df.append(temp)
+                    # if len(over_index)>1:
+                    #     print(over_index)
+                    added.extend(over_index)
+                    
+                added.append(index)
+                    
+                pbar.update(1)
             
             # if index>200:
             #     break   
@@ -161,6 +187,9 @@ def searh_rows2(df1, df2, added, crs='EPSG:4326', overlap_threshold = 0.3, df=No
     df = geopandas.GeoDataFrame(df)
     if len(df)>0:
         df = df.set_crs(crs, allow_override=True)
+    
+    with open(path,"wb") as f:
+        pickle.dump((df, added), f, protocol=pickle.HIGHEST_PROTOCOL)
     
     return df, added
 
