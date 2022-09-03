@@ -86,7 +86,7 @@ class Region:
         self.output = output
 
     @staticmethod
-    def vector2raster(vector_data, measurements, resolution, all_touched=True):
+    def vector2raster(vector_data, measurements, resolution, all_touched=True, alg=MergeAlg.add):
         out_grid = make_geocube(
             vector_data = vector_data,
             measurements = measurements,
@@ -94,7 +94,7 @@ class Region:
             fill = 0,
             rasterize_function = partial(rasterize_image, 
                                          all_touched=all_touched, 
-                                         merge_alg=MergeAlg.add),
+                                         merge_alg=alg),
         )
         
         return out_grid
@@ -102,8 +102,6 @@ class Region:
     
     def normalize_output(self):
         for var in self.output:
-            if var == 'emission':
-                continue
             maxd = self.output.max()
             mind = self.output.min()
             self.output[var] = (self.output[var] - mind[var]) / (maxd[var] - mind[var])
@@ -111,4 +109,4 @@ class Region:
     
     def difference_map(self, var1, var2):        
         diff = self.output[var1] - self.output[var2]
-        return diff.plot(cmap='PiYG', figsize=(15,10))
+        return diff.plot(cmap='PiYG', figsize=(10,5))
