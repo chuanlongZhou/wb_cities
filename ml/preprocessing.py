@@ -4,6 +4,15 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import make_column_transformer, make_column_selector
 from sklearn.impute import SimpleImputer
+import geopandas as gpd
+
+
+def merge_cities(dataframesList):
+    df = dataframesList[0]
+    for df_next in dataframesList[1:]:
+        df = df.append(df_next)
+    return df
+    # return gpd.GeoDataFrame(pd.concat(dataframesList, ignore_index=True), crs=dataframesList[0].crs)
 
 
 def split( data ):
@@ -22,15 +31,10 @@ def training_split(data, variable):
 def columns_selectors(data):
     numerical_features = ['ntl', 'area']
     categorical_features = make_column_selector(dtype_include = object)
-    discrete_features = ['lcz', 'index_right'] 
+    discrete_features = ['lcz', 'wsf', 'index_right'] 
     return numerical_features, categorical_features, discrete_features
 
 def sub_pipelines(data):
-    categorical_feature_names = [
-        data['type_level_0'].unique(), 
-        data['type_level_1'].unique(), 
-        data['type_level_2'].unique(), 
-    ]
     
     numerical_pipeline = make_pipeline(
         SimpleImputer( strategy='mean'),
@@ -38,7 +42,7 @@ def sub_pipelines(data):
     )
     categorical_pipeline = make_pipeline(
         SimpleImputer( strategy='most_frequent'),
-        OneHotEncoder(categories=categorical_feature_names)
+        OneHotEncoder()
     )
     discrete_pipeline = make_pipeline(
         SimpleImputer( strategy='most_frequent'),
@@ -61,15 +65,9 @@ def preprocesor(data):
 
 
 def clean_columns(data):
-    data.drop(['geometry', 'source', 'orient'], axis=1, inplace=True)
-    dup_0 = {
-    'Civic/amenity':'civic',
-    'Agricultural/plant production': 'greenhouse',
-    'Commercial': 'commercial',
-    }
+    data.drop(['geometry', 'source', 'orient','type_level_0', 'type_level_1'], axis=1, inplace=True)
     dup_2 = {
-        'no tag': np.nan,
+        'no tag': 'others',
     }
-    data['type_level_0'] = data['type_level_0'].replace(dup_0)
     data['type_level_2'] = data['type_level_2'].replace(dup_2)
     return data

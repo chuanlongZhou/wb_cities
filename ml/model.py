@@ -7,21 +7,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import *
-import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from region_new import Region
-import rioxarray
-
 
 
 classifiers = [
-    # RandomForestClassifier(random_state=42),
-    # SVC(probability=True, random_state=42),
-    # LogisticRegression(random_state=42),
-    # DecisionTreeClassifier(random_state=42),
+    RandomForestClassifier(random_state=42),
+    SVC(probability=True, random_state=42),
+    LogisticRegression(random_state=42),
+    DecisionTreeClassifier(random_state=42),
     KNeighborsClassifier(),
 ]
+
 
 grid_params = {
     0 : { 
@@ -53,6 +51,7 @@ grid_params = {
 def select_best_estimator(X, y, preprocessor, classifiers=classifiers):
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    print(X_train.shape, y_train.shape)
     best_grid = None
     best_score = 0.0   
     for i in range(len(classifiers)):
@@ -64,7 +63,7 @@ def select_best_estimator(X, y, preprocessor, classifiers=classifiers):
         )
         grid = GridSearchCV(
             pipeline,
-            param_grid = grid_params[4],
+            param_grid = grid_params[i],
         )
         grid.fit(X_train, y_train)
         print(classifiers[i])
@@ -76,14 +75,23 @@ def select_best_estimator(X, y, preprocessor, classifiers=classifiers):
     
     return best_grid.best_estimator_
 
+
 def predict(model, variable, train_set, pred_set, saved_set):
     pred_set[variable+'_pred'] = model.predict(pred_set)
     train_set[variable+'_pred'] = train_set[variable]
     result = pd.concat([train_set, pred_set])
     saved_set = saved_set.merge(result[variable+'_pred'], how='inner', left_index=True, right_index=True )
     saved_set = saved_set.to_crs('EPSG:3395')
-    saved_set = saved_set.loc[:, ['geometry', 'area', 'density', 'height', variable+'_pred']]
+    saved_set = saved_set.loc[:, ['city', 'geometry', 'area', 'density', 'height', variable+'_pred']]
     return saved_set 
+
+
+def breakdown_cities(data):
+    citiesList = list(data.city.unique())
+    dataframesList = []
+    for city in citiesList:
+        dataframesList.append( data[ data.city == city ] )  
+    return dataframesList
 
 
 def prediction_to_raster(data, variable):
@@ -93,9 +101,7 @@ def prediction_to_raster(data, variable):
     return raster
 
 
-def write_result(raster, name):
-    w_path = os.path.join('data', 'ml', 'prediction', name+'.tif')
-    raster.rio.to_raster(w_path)
+def write_result(raster, variable, name):
+    w_path = os.path.join('data', 'ml', 'prediction', variable, name+'.tif')
+    raster[variable+'_pred'].rio.to_raster(w_path)
     return
-
-
