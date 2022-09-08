@@ -5,7 +5,8 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import box
 from rasterio.features import shapes
-from region_new import Region
+from region_new import Region, vector
+
 
 def add_polygons(data, city):
     inner_bounds = data.total_bounds
@@ -65,6 +66,7 @@ def rasters_to_vectors(city, rasters, resolution):
    
     lcz_path = os.path.join ('data','lcz','lcz_filter_v1.tif')
     ntl_path = os.path.join ('data','ntl','ntl.tif')
+    wsf_path = os.path.join ('data','wsf','')
 
     region = Region(box)
     house = gpd.read_file(house)
@@ -94,6 +96,14 @@ def rasters_to_vectors(city, rasters, resolution):
                 var_name="ntl", 
                 meta="Nighttime Light")
 
+    # add wsf raster layer
+    region.add_layer(layer_name="wsf", 
+                geo_data=wsf_path+city+'.tif', 
+                layer_type="raster", 
+                box=box, 
+                var_name="wsf", 
+                meta="WSF Mask")
+
     region.add_raster_from_vector(layer_name="MS",
                                     measurements=["area","density"], 
                                     resolution=resolution, 
@@ -107,7 +117,8 @@ def rasters_to_vectors(city, rasters, resolution):
     region.merge_data(base_raster="MS_raster", 
                     raster_list={
                         "lcz":(["lcz"],"nearest"),
-                        "ntl":(["ntl"],"linear")
+                        "ntl":(["ntl"],"linear"),
+                        "wsf":(["wsf"],"nearest")
                         }
                     )
     # we compute one vector dataset per raster variable
@@ -119,10 +130,11 @@ def rasters_to_vectors(city, rasters, resolution):
 def add_feature_from_raster(vector, feature_vector, city):
     if 'index_right' in vector.columns:
         vector.drop('index_right', axis=1, inplace=True)
-    vector = vector.sjoin(feature_vector, how='left', predicate='within')
+    vector = vector.sjoin(feature_vector, how='left', predicate='intersects')
+    vector = vector[~vector.index.duplicated(keep='first')]
     return vector
 
-def add_rasters(data, rasters, city, resolution=500):
+def add_rasters(data, rasters, city, resolution=100):
     resolution = (-resolution, resolution)
     raster_vector_list = rasters_to_vectors(city, rasters, resolution)
     for vector in raster_vector_list:
@@ -130,7 +142,7 @@ def add_rasters(data, rasters, city, resolution=500):
     return data
 
 
-def add_all_features(data, city, rasters=['ntl', 'lcz']):
+def add_all_features(data, city, rasters=['ntl', 'lcz', 'wsf']):
     print('adding polygons... ')
     data = add_polygons(data, city)
     print('adding denstity... ')
@@ -139,4 +151,5 @@ def add_all_features(data, city, rasters=['ntl', 'lcz']):
     data = add_area(data)
     print('adding rasters... ')
     data = add_rasters(data, rasters, city)
+    data['city'] = city
     return data
