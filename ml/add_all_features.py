@@ -3,12 +3,20 @@ import json
 import rasterio
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import box
+from shapely.geometry import *
 from rasterio.features import shapes
-from region_new import Region, vector
-
+from region_new import Region
+import rioxarray
+from utils import *
 
 def add_polygons(data, city):
+    '''
+    Ensures bounding box homogeneity (eg. FUA bounding box)
+
+    :param DataFrame data: Building dataset
+    :param string city: city name 
+    :return DataFrame: Updated Building dataset
+    '''
     inner_bounds = data.total_bounds
     minx_, miny_, maxx_, maxy_ = inner_bounds
     outer_path = os.path.join("data","microsoft_buildings", city+".json")
@@ -21,26 +29,49 @@ def add_polygons(data, city):
     difference = p_outer.difference(p_inner)
     additional_polygons = outer_data[outer_data.geometry.within(difference, align=False)]
     data = pd.concat([data, additional_polygons])
+    data['source'] = data['source'].fillna('MS')
     return data
 
 
 def add_density(data):
+    '''
+    Ensures density=1 for newly added polygons -- see add_polygons
+
+    :param DataFrame data: Building dataset
+    :return DataFrame: Updated Building dataset
+    '''
     data['density'] = 1
     return data
 
 
 def add_area(data):
-    data = data.to_crs("EPSG:3395")
-    data['area']= data["geometry"].area
-    data = data.to_crs("EPSG:4326")
+    '''
+    Computes polygon area for newly added polygons
+
+    :param DataFrame data: Building dataset
+    :return DataFrame: Updated Building dataset
+    '''
+    data_to_update = data[data['area'].isna()]
+    data_to_update = data_to_update.to_crs("EPSG:3395")
+    data_to_update['area']= data_to_update["geometry"].area
+    data_to_update = data_to_update.to_crs("EPSG:4326")
+    data[data['area'].isna()] = data_to_update
     return data
 
 
-def raster_to_vector(raster, variable, city, mask=None):
+def raster_to_vector(raster, variable, city):
+    '''
+    Returns vectorized raster variable 
+
+    :param Xarray Dataset raster: Raster variable
+    :param string variable: Variable name
+    :param string city: City name
+    :return DataFrame: Vectorized raster
+    '''
     output_path = os.path.join('data', 'output', 'v3', '')
-    to_tif = getattr(raster, variable)
+    # to_tif = getattr(raster, variable)
     path = output_path+city+"_"+variable+".tif"
-    raster = to_tif.rio.to_raster(path)
+    raster = raster.rio.to_raster(path)
 
     with rasterio.Env():
         with rasterio.open(path) as src:
@@ -49,100 +80,103 @@ def raster_to_vector(raster, variable, city, mask=None):
             {'properties': {variable: v}, 'geometry': s}
             for i, (s, v) 
             in enumerate(
-                shapes(image.astype('float32'), mask=mask, transform=src.transform)))
+                shapes(image.astype('float32'), transform=src.transform)))
     
-    vector = gpd.GeoDataFrame.from_features(list(results), crs='EPSG:3395')
-    vector = vector.to_crs('epsg:4326')
+    vector = gpd.GeoDataFrame.from_features(list(results), crs='EPSG:4326')
+    # vector = vector.to_crs('epsg:4326')
 
     return vector
 
-def rasters_to_vectors(city, rasters, resolution):
-    bounding_box = json.load(open('bounding_box.json'))
-    house = os.path.join("data","microsoft_buildings", city+".json")
-  
-    box = bounding_box[city]['box']
-    name = city
-    house = house
-   
-    lcz_path = os.path.join ('data','lcz','lcz_filter_v1.tif')
-    ntl_path = os.path.join ('data','ntl','ntl.tif')
-    wsf_path = os.path.join ('data','wsf','')
 
-    region = Region(box)
-    house = gpd.read_file(house)
-    house['density']=1
-    house = house.to_crs("EPSG:3395")
-    house['area']= house["geometry"].area
-    house = house.to_crs("EPSG:4326")
 
-    region.add_layer(layer_name="MS", 
-                geo_data=house, 
-                layer_type="vector", 
-                meta="MS buildings")
+def rasters_to_vectors(city, variables):
+    '''
+    Returns a list of vectorized rasters 
 
-    # add lcz raster layer
-    region.add_layer(layer_name="lcz", 
-                    geo_data=lcz_path, 
-                    layer_type="raster", 
-                    box=box, 
-                    var_name="lcz", 
-                    meta="LCZ categorey label")
+    :param string city: City name
+    :param string list rasters: List of raster variablesm already includes LCZ & VIIRS NTL
+    :return DataFrame list: Vectorized rasters
+    '''
+    vector_list = []
+    box = json.load(open('bounding_box.json'))[city]['box']
+    [maxy, minx], [miny, maxx] = box
+
+    for variable in variables:
+        path_to_raster = os.path.join('data', variable, city+'.tif')
+        if variable=="lcz" or variable=="ntl":
+            path_to_raster = os.path.join('data', variable, variable+'.tif')
+        raster = rioxarray.open_rasterio(path_to_raster).rio.clip_box(minx, miny, maxx, maxy)
+        vector_list.append(raster_to_vector(raster, variable, city))
     
-    # add ntl raster layer
-    region.add_layer(layer_name="ntl", 
-                geo_data=ntl_path, 
-                layer_type="raster", 
-                box=box, 
-                var_name="ntl", 
-                meta="Nighttime Light")
 
-    # add wsf raster layer
-    region.add_layer(layer_name="wsf", 
-                geo_data=wsf_path+city+'.tif', 
-                layer_type="raster", 
-                box=box, 
-                var_name="wsf", 
-                meta="WSF Mask")
+    return vector_list,variables
 
-    region.add_raster_from_vector(layer_name="MS",
-                                    measurements=["area","density"], 
-                                    resolution=resolution, 
-                                    new_name = "MS_raster",
-                                    res_type="meter")
-        
-    # unify the projection
-    region.unify_proj(crs_type="meter")
-    
-    # merge raster as output xarray
-    region.merge_data(base_raster="MS_raster", 
-                    raster_list={
-                        "lcz":(["lcz"],"nearest"),
-                        "ntl":(["ntl"],"linear"),
-                        "wsf":(["wsf"],"nearest")
-                        }
-                    )
-    # we compute one vector dataset per raster variable
-    raster_vectors = []
-    for raster in rasters:
-        raster_vectors.append( raster_to_vector(region.output, raster, city) )
-    return raster_vectors
+def add_features_from_rasters(arg_tuple):
+    '''
+    Compute the intersection between building polygons and vectorized rasters to assign 
+    the given raster value to each polygon.
 
-def add_feature_from_raster(vector, feature_vector, city):
-    if 'index_right' in vector.columns:
-        vector.drop('index_right', axis=1, inplace=True)
-    vector = vector.sjoin(feature_vector, how='left', predicate='intersects')
+    :param DataFrame vector: Building dataset
+    :param DataFrame arg_tuple: Raster dataset, raster name
+    :return DataFrame: Updated building dataset
+    '''
+    vector, rvector, name = arg_tuple
+    print(name, 'sjoin...')
+    vector = vector.sjoin(rvector, how='left', predicate='intersects')
     vector = vector[~vector.index.duplicated(keep='first')]
-    return vector
+    col_filter = [col for col in vector if col.startswith('index_right')]
+    vector = vector.drop(col_filter, axis=1)
+    return vector[[name]]
 
-def add_rasters(data, rasters, city, resolution=100):
-    resolution = (-resolution, resolution)
-    raster_vector_list = rasters_to_vectors(city, rasters, resolution)
-    for vector in raster_vector_list:
-        data = add_feature_from_raster(data, vector, city)
+
+def add_rasters(data, rasters, city):
+    '''
+    Assign raster values to each building polygon.
+
+    :param DataFrame data: Building dataset
+    :param string List rasters: Raster variables names
+    :param string city: City name
+    :return DataFrame: Updated Building dataset
+    '''
+
+    vectors, names =  rasters_to_vectors( city, rasters )
+    points = []
+    for p in data.geometry:
+        if p.geom_type =='MultiPolygon':
+            points.append(Point(p.geoms[0].exterior.coords[0]))
+        else:
+            points.append(Point(p.exterior.coords[0]))
+    data_p = data.set_geometry(points, crs='EPSG:4326')
+    vn_list = list( zip( vectors, names ) )
+    for v, n in vn_list:
+        data = data.join( add_features_from_rasters((data_p, v, n)), how='left' )
+        col_filter = [col for col in data if col.startswith('index_right')]
+        data = data.drop(col_filter, axis=1)
+    # data_list = [data_p for i in range(len(names))]
+    # arg_list = list(zip(data_list, vectors, names))
+    # results = run_mp(add_features_from_rasters, arg_list)
+    # for result in results:
+    #     data = data.join(result, how='left')
+    #     col_filter = [col for col in data if col.startswith('index_right')]
+    #     data = data.drop(col_filter, axis=1)
+    for name in names:
+        data = data.dropna(subset=[name])
+    # Filter with WSF:
+    data = data.drop( 
+        data[ (data['source']!='OSM') & (data['wsf']==0.0) ].index
+    )
     return data
 
 
-def add_all_features(data, city, rasters=['ntl', 'lcz', 'wsf']):
+def add_all_features(data, city, rasters=['lcz', 'ntl', 'wsf', 'height_ghsl']):
+    '''
+    Chain-calls all the updating functions of this package
+
+    :param DataFrame data: Building dataset
+    :param string city: city name
+    :param list rasters: raster variables to add, defaults to ['wsf']
+    :return DataFrame: Updated Building dataset
+    '''
     print('adding polygons... ')
     data = add_polygons(data, city)
     print('adding denstity... ')

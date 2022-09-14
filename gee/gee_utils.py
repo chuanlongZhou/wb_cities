@@ -1,9 +1,8 @@
-import numpy
 import requests
-import io
 import os
 import ee
 import json
+from datetime import date, timedelta
 
 
 def getMonthlyData(collection, year, month):
@@ -21,7 +20,10 @@ def getMonthlyData(collection, year, month):
                      
     return data
         
-        
+def getImage(collection):
+    data = ee.Image(collection)
+    return data
+      
 def getYearlyData(collection, year):
     '''Returns a list of monthly cropped images
 
@@ -36,24 +38,30 @@ def getYearlyData(collection, year):
     return data_list
 
 
-def download(city, variable, year):
+def download(city, variable, year=None):
     bounding_box = json.load(open('../bounding_box.json'))
     box = bounding_box[city]
     [(ymax, xmin), (ymin, xmax)] = box['box']
-    margin = 0.001
-    region = ee.Geometry.BBox(xmin-margin, ymin+margin, xmax+margin, ymax+margin)
+    margin = 0.05
+    region = ee.Geometry.BBox(xmin-margin, ymin-margin, xmax+margin, ymax+margin)
     variables = json.load(open('config.json'))
     collection = variables['datasets'][variable]['name']
-    data_list = getYearlyData(collection, year)
     bands = variables['datasets'][variable]['bands']
-    downloadAsLink(data_list, city, region, year, bands, variable)
-    
-    
+    if year is None:
+        data = getImage(collection)
+        downloadAsLink(data, city, region, bands, variable)
+        return
+    data_list = getYearlyData(collection, year)
+    for data in data_list:
+        downloadAsLink(data, city, region, bands, variable, year=year)
+        
 
-def downloadAsLink( data_list, city, region, year, bands, variable):
+def downloadAsLink( data, city, region, bands, variable, year=None):
     for i in range(12):
-        name = str(city)+"_"+str(year)+"_"+str(i+1)+'.tif'
-        url=data_list[i].getDownloadUrl({
+        if year is None:
+            name = str(city)+'.tif'
+        else: name = str(city)+'_'+year+'.tif'
+        url=data.getDownloadUrl({
             'name': name,
             'bands': bands,
             'region':region,
@@ -64,3 +72,12 @@ def downloadAsLink( data_list, city, region, year, bands, variable):
         with open(path+name, 'wb') as out_file:
             content = requests.get(url, stream=True).content
             out_file.write(content)
+
+
+def get_bounding_dates(config):
+    latency = config["latency"]
+    maxdate = date.today()
+    mindate = maxdate - timedelta(days=10)
+    mindate = mindate - timedelta(days=latency)
+    maxdate = maxdate - timedelta(days=latency)
+    return mindate.strftime('%Y-%m-%d'), maxdate.strftime('%Y-%m-%d')

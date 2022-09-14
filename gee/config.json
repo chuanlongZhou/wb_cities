@@ -8,6 +8,14 @@
         "lst": {
             "name": "MODIS/061/MOD11A2",
             "bands": ["LST_Day_1km", "LST_Night_1km"]
+        },
+        "gpw": {
+            "name": "CIESIN/GPWv411/GPW_Mean_Administrative_Unit_Area",
+            "bands": ["mean_administrative_unit_area"]
+        },
+        "s2": {
+            "name": "COPERNICUS/S2_HARMONIZED",
+            "bands": ["B2", "B3", "B4"]
         }
     },
 
