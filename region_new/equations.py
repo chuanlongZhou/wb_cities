@@ -18,9 +18,13 @@ def building_volume(ds):
     return v
 
 def pop_desaggregation_v(ds, pop):
-    p = ds.volume * int(pop)
+    p = ds.volume * pop
     return p
 
 def pop_desaggregation_s(ds, pop):
-    p = ds.surface * int(pop)
+    p = ds.surface * pop
+    return p
+
+def pop_desaggregation_h(ds):
+    p = ds.height * ds.ghsl_pop
     return p

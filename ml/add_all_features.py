@@ -152,23 +152,16 @@ def add_rasters(data, rasters, city):
         data = data.join( add_features_from_rasters((data_p, v, n)), how='left' )
         col_filter = [col for col in data if col.startswith('index_right')]
         data = data.drop(col_filter, axis=1)
-    # data_list = [data_p for i in range(len(names))]
-    # arg_list = list(zip(data_list, vectors, names))
-    # results = run_mp(add_features_from_rasters, arg_list)
-    # for result in results:
-    #     data = data.join(result, how='left')
-    #     col_filter = [col for col in data if col.startswith('index_right')]
-    #     data = data.drop(col_filter, axis=1)
     for name in names:
         data = data.dropna(subset=[name])
     # Filter with WSF:
     data = data.drop( 
-        data[ (data['source']!='OSM') & (data['wsf']==0.0) ].index
+        data[ (data['wsf']==0.0) ].index
     )
     return data
 
 
-def add_all_features(data, city, rasters=['lcz', 'ntl', 'wsf', 'height_ghsl']):
+def add_all_features(data, city, rasters=['lcz', 'ntl', 'wsf', 'wsf_height']):
     '''
     Chain-calls all the updating functions of this package
 

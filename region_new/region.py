@@ -3,6 +3,7 @@ import geopandas
 import pickle
 import shapely
 import os
+import xarray
 import rasterio
 import numpy as np
 from region_new.equations import *
@@ -130,19 +131,15 @@ class Region:
         diff = self.output[var1] - self.output[var2]
         return diff.plot(cmap='PiYG', figsize=(10,5))
 
-
-def get_total_pop(raster_path):
-    with rasterio.Env():
-        with rasterio.open(raster_path) as src:
-            data = src.read(1)
-            data = np.where(data == np.nan, 0, data)
-            data = np.where(data < 0, 0, data)
-            region = np.unique(data)
-            counts = [np.count_nonzero(data==region[i]) for i in range(len(region))]
-            res = 0
-            for i in range(len(region)):
-                res += region[i]*counts[i]
-            return int(res)
+                        # data = src.read(1)
+            # data = np.where(data == np.nan, 0, data)
+            # data = np.where(data < 0, 0, data)
+            # region = np.unique(data)
+            # counts = [np.count_nonzero(data==region[i]) for i in range(len(region))]
+            # res = 0
+            # for i in range(len(region)):
+            #     res += region[i]*counts[i]
+            # return int(res)
 
 
 def regions_from_cities(cities, resolution):
@@ -153,9 +150,10 @@ def regions_from_cities(cities, resolution):
     :param int resolution: meter length of raster cells for the output
     '''
     ntl_path = os.path.join( 'data', 'ntl', 'ntl.tif')
-    gpw_path = os.path.join('data', 'gpw', '')
-    height_path = os.path.join('data', 'ghsl', 'height', '')
+    height_path = os.path.join('data', 'wsf_height', '')
     pop_path = os.path.join('data', 'ghsl', 'pop', '')
+    res_path = os.path.join('data', 'ghsl', 'res', '')
+    nres_path = os.path.join('data', 'ghsl', 'nres', '')
      
     resolution=(-resolution, resolution)
     Cities = {}
@@ -192,7 +190,23 @@ def regions_from_cities(cities, resolution):
                     layer_type='raster',
                     box=box, 
                     var_name="height", 
-                    meta="GHSL BUILT-H")
+                    meta="WSF3D average height")
+
+        city.add_layer(
+                    layer_name="res",
+                    geo_data=res_path+name+".tif",
+                    layer_type='raster',
+                    box=box, 
+                    var_name="res", 
+                    meta="GHSL BUILT-S RES")
+
+        city.add_layer(
+                    layer_name="nres",
+                    geo_data=nres_path+name+".tif",
+                    layer_type='raster',
+                    box=box, 
+                    var_name="nres", 
+                    meta="GHSL BUILT-S NRES")
 
         city.add_layer(
                     layer_name="ghsl_pop",
@@ -202,6 +216,14 @@ def regions_from_cities(cities, resolution):
                     var_name="ghsl_pop", 
                     meta="GHSL POP")
         
+        # city.add_layer(
+        #             layer_name="coarse_pop",
+        #             geo_data=coarse_path+name+".tif",
+        #             layer_type='raster',
+        #             box=box, 
+        #             var_name="coarse_pop", 
+        #             meta="Coarse Pop from Gridded Population of the World")
+
         city.add_layer(
             layer_name='ntl',
             geo_data=ntl_path,
@@ -210,10 +232,10 @@ def regions_from_cities(cities, resolution):
             var_name='ntl',
             meta='VIIRS annual ntl'
         )
-
-        city.pop = get_total_pop(gpw_path+name+'.tif')
-        
-
+        # fix some values values
+        city.raster['ghsl_pop'].tiff['ghsl_pop'] = xarray.where( city.raster['ghsl_pop'].tiff['ghsl_pop'] < 0, 0, city.raster['ghsl_pop'].tiff['ghsl_pop'])
+        city.raster['height'].tiff['height'] = xarray.where( city.raster['height'].tiff['height'] < 0, 0, city.raster['height'].tiff['height'] )
+        city.raster['res'].tiff['res'] = city.raster['res'].tiff['res'] - city.raster['nres'].tiff['nres']
         # convert vector to raster
         city.add_raster_from_vector(layer_name="MS", 
                                     measurements=["area","density"], 
@@ -226,17 +248,23 @@ def regions_from_cities(cities, resolution):
         # merge raster as output xarray
         city.merge_data(base_raster="MS_raster", 
                         raster_list={
-                            "height":(["height"], "linear"),
-                            "ntl":(["ntl"], "linear"),
-                            "ghsl_pop":(["ghsl_pop"], "linear")
+                            "height":(["height"], "nearest"),
+                            "ntl":(["ntl"], "nearest"),
+                            "ghsl_pop":(["ghsl_pop"], "nearest"),
+                            "res":(["res"], "nearest")
                             }
                         )
+
+        # population
+        # other option is to compile census data
+        total_pop = city.raster['ghsl_pop'].tiff['ghsl_pop'].sum()
+
         # Compute side variables : population disaggregation, volume, surface
         city.output = city.output.assign(surface= building_surface) 
         city.normalize_variable('surface',output=True)
         city.output = city.output.assign(volume = building_volume)
         city.normalize_variable('volume',output=True)
-        city.output = city.output.assign(pop_v = pop_desaggregation_v(city.output, city.pop))
-        city.output = city.output.assign(pop_s = pop_desaggregation_s(city.output, city.pop))
+        city.output = city.output.assign(pop_s = pop_desaggregation_s(city.output, total_pop))
+        city.output = city.output.assign(pop_v = pop_desaggregation_v(city.output, total_pop))
         Cities[key] = city      
     return Cities      
