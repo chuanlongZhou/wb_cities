@@ -70,7 +70,7 @@ def select_best_estimator(X, y, preprocessor, estimators=estimators):
             cm = ConfusionMatrixDisplay.from_estimator(grid, X_test, y_test)
         else: 
             print(mean_squared_error(y_test, grid.predict(X_test)))
-        print("f1 score : ", f1_score(y_test, grid.predict(X_test)))
+        print("f1 score : ", f1_score(y_test, grid.predict(X_test), average='weighted'))
         if grid.best_score_ > best_score:
             best_score = grid.best_score_
             best_grid = grid

@@ -113,5 +113,5 @@ def clean_columns(data):
     :param DataFrame data: 
     :return DataFrame: Truncated DataFrame to meaningful variables only
     '''
-    data.drop(['geometry', 'source', 'orient','type_level_0', 'type_level_1'], axis=1, inplace=True)
+    data.drop(['geometry', 'height', 'source', 'orient','type_level_0', 'type_level_1'], axis=1, inplace=True)
     return data

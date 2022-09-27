@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 
 def getMonthlyData(collection, year, month):
-    '''Query LST monthly average image
+    '''Query monthly average image
     Args:
         year (_string_): use '01' typo for January, and so on
         month (_string_): same as above
@@ -21,6 +21,12 @@ def getMonthlyData(collection, year, month):
     return data
         
 def getImage(collection):
+    '''
+    Query single Image from GEE
+
+    :param string collection: Image GEE-dataset name
+    :return tiff: selected Image
+    '''
     data = ee.Image(collection)
     return data
       
@@ -72,12 +78,5 @@ def downloadAsLink( data, city, region, bands, variable, year=None):
         with open(path+name, 'wb') as out_file:
             content = requests.get(url, stream=True).content
             out_file.write(content)
-
-
-def get_bounding_dates(config):
-    latency = config["latency"]
-    maxdate = date.today()
-    mindate = maxdate - timedelta(days=10)
-    mindate = mindate - timedelta(days=latency)
-    maxdate = maxdate - timedelta(days=latency)
-    return mindate.strftime('%Y-%m-%d'), maxdate.strftime('%Y-%m-%d')
+        if year is None: return
+    return
